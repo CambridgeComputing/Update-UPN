@@ -29,7 +29,7 @@
     This parameter is optional.
 
 .Example
-    .\ChangeUPNSuffix.ps1 -OU "OU=YourOU,DC=YourDomain,DC=com" -UPNSuffix "newDomain.com" -OutCSV "C:\Temp\UPNChanges.csv" -Verbose $true
+    .\ChangeUPNSuffix.ps1 -OU "OU=YourOU,DC=YourDomain,DC=com" -UPNSuffix "newDomain.com" -OutCSV "C:\Temp\UPNChanges.csv" -ShowALl
     This command changes the UPN suffix of all users in the OU 'YourOU' in the domain 'YourDomain.com' to 'newDomain.com',
     saves the changes to 'C:\Temp\UPNChanges.csv', and displays verbose output.
 
@@ -108,9 +108,7 @@ foreach ($User in $Users) {
             NewUPN = $NewUPN
         }
     } elseif ($ShowAll) {
-         
-            Write-Host "UPN of $($User.SamAccountName) is already correct: $($User.UserPrincipalName)"
-        
+        Write-Host "UPN of $($User.SamAccountName) is already correct: $($User.UserPrincipalName)"
     }
 }
 
