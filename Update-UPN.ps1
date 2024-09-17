@@ -28,6 +28,9 @@
     all accounts processed, otherwise only changed accounts will be shown.
     This parameter is optional.
 
+.Parameter ShowAll
+    Specifies that the UPN verification will be skipped and the script will run even if the UPN provided is not found in Active Directory.
+
 .Example
     .\ChangeUPNSuffix.ps1 -OU "OU=YourOU,DC=YourDomain,DC=com" -UPNSuffix "newDomain.com" -OutCSV "C:\Temp\UPNChanges.csv" -ShowALl
     This command changes the UPN suffix of all users in the OU 'YourOU' in the domain 'YourDomain.com' to 'newDomain.com',
@@ -57,7 +60,10 @@ Param(
     [string]$OutCSV,
 
     [Parameter(Mandatory=$false)]
-    [switch]$ShowAll
+    [switch]$ShowAll,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$Force
 )
 
 # Import Active Directory module
@@ -120,3 +126,27 @@ if ($OutCSV) {
 }
 
 Write-Host ""
+
+function Get-UPNSuffixes {
+    <#
+    .SYNOPSIS
+    Retrieves all UPN suffixes for the current Active Directory domain.
+
+    .DESCRIPTION
+    This function uses the Active Directory PowerShell module to query the forest's UPN suffixes.
+
+    .EXAMPLE
+    Get-UPNSuffixes
+
+    #>
+
+    try {
+        $forest = Get-ADForest
+        $forest.UPNSuffixes
+    }
+    catch {
+        Write-Warning "Failed to retrieve UPN suffixes: $($Error[0].Message)`n"
+        Write-Warning "Continuing without verifying the UPN is actually registered in Active Directory. Please verify before moving forward!This might indicate a larger problem..."
+        Write-Warning "You can continue by passing the -Force flag on this script to skip this check."
+    }
+}
