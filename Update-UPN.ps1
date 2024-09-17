@@ -31,6 +31,9 @@
 .Parameter ShowAll
     Specifies that the UPN verification will be skipped and the script will run even if the UPN provided is not found in Active Directory.
 
+.Parameter Force
+    Bypasses UPN checks and verifications.
+
 .Example
     .\ChangeUPNSuffix.ps1 -OU "OU=YourOU,DC=YourDomain,DC=com" -UPNSuffix "newDomain.com" -OutCSV "C:\Temp\UPNChanges.csv" -ShowALl
     This command changes the UPN suffix of all users in the OU 'YourOU' in the domain 'YourDomain.com' to 'newDomain.com',
@@ -68,6 +71,14 @@ Param(
 
 # Import Active Directory module
 Import-Module ActiveDirectory
+
+# Verify that the UPN is present in AD
+if (!$Force -and (-not ($UPNSuffix -in (Get-UPNSuffixes)))) {
+    Write-Warning "The UPN suffix specified is not registered in Active Directory."
+    Write-Warning "Please register the suffix before continuing."
+    Write-Warning "If you are certain that you have registered the suffix, you can continue by passing the -Force flag on this script to skip this check."
+    exit
+}
 
 # Get all users in the OU
 $Users = Get-ADUser -Filter * -SearchBase $OU
@@ -137,7 +148,6 @@ function Get-UPNSuffixes {
 
     .EXAMPLE
     Get-UPNSuffixes
-
     #>
 
     try {
@@ -146,7 +156,8 @@ function Get-UPNSuffixes {
     }
     catch {
         Write-Warning "Failed to retrieve UPN suffixes: $($Error[0].Message)`n"
-        Write-Warning "Continuing without verifying the UPN is actually registered in Active Directory. Please verify before moving forward!This might indicate a larger problem..."
+        Write-Warning "Continuing without verifying the UPN is actually registered in Active Directory. Please verify before moving forward! This might indicate a larger problem or permission issue..."
         Write-Warning "You can continue by passing the -Force flag on this script to skip this check."
+        exit
     }
 }
